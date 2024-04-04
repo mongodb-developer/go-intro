@@ -32,6 +32,7 @@ func main() {
 	const serverAddr string = "127.0.0.1:8081"
 	// TODO: Replace with your connection string
 	const connStr string = "mongodb+srv://yourusername:yourpassword@notekeeper.xxxxxx.mongodb.net/?retryWrites=true&w=majority&appName=NoteKeeper"
+	done := make(chan struct{})
 
 	fmt.Println("Hola Caracola")
 
@@ -58,6 +59,9 @@ func main() {
 		Handler: router,
 	}
 	server.RegisterOnShutdown(func() {
+		defer func() {
+			done <- struct{}{}
+		}()
 		fmt.Println("Signal shutdown")
 	})
 	go func() {
@@ -71,6 +75,7 @@ func main() {
 	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("HTTP server error %v\n", err)
 	}
+	<-done
 }
 
 func createNote(w http.ResponseWriter, r *http.Request) {
