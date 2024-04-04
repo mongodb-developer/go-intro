@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -54,7 +57,20 @@ func main() {
 		Addr:    serverAddr,
 		Handler: router,
 	}
-	log.Fatal(server.ListenAndServe())
+	server.RegisterOnShutdown(func() {
+		fmt.Println("Signal shutdown")
+	})
+	go func() {
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, os.Interrupt)
+		<-sigint
+		if err := server.Shutdown(context.Background()); err != nil {
+			log.Fatalf("Server shutdown error: %v", err)
+		}
+	}()
+	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalf("HTTP server error %v\n", err)
+	}
 }
 
 func createNote(w http.ResponseWriter, r *http.Request) {
