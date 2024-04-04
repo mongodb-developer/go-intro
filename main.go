@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -63,6 +64,7 @@ func main() {
 			done <- struct{}{}
 		}()
 		fmt.Println("Signal shutdown")
+		time.Sleep(5 * time.Second)
 	})
 	go func() {
 		sigint := make(chan os.Signal, 1)
@@ -73,7 +75,7 @@ func main() {
 		}
 	}()
 	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalf("HTTP server error %v\n", err)
+		log.Panicf("HTTP server error %v\n", err)
 	}
 	<-done
 }
