@@ -58,5 +58,12 @@ func createNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	notesCollection := mdbClient.Database("NoteKeeper").Collection("Notes")
+	result, err := notesCollection.InsertOne(r.Context(), note)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	fmt.Fprintf(w, "Note: %+v", note)
+	log.Printf("Id: %v", result.InsertedID)
 }
