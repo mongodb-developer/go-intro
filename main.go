@@ -44,11 +44,17 @@ func main() {
 		}
 	}()
 
-	http.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("HTTP Caracola"))
 	})
-	http.HandleFunc("POST /notes", createNote)
-	log.Fatal(http.ListenAndServe(serverAddr, nil))
+	router.HandleFunc("POST /notes", createNote)
+
+	server := http.Server{
+		Addr:    serverAddr,
+		Handler: router,
+	}
+	log.Fatal(server.ListenAndServe())
 }
 
 func createNote(w http.ResponseWriter, r *http.Request) {
