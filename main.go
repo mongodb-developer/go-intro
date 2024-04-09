@@ -75,7 +75,8 @@ func main() {
 		}
 	}()
 	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-		log.Panicf("HTTP server error %v\n", err)
+		fmt.Fprintf(os.Stderr, "HTTP server error %v\n", err)
+		close(done)
 	}
 	<-done
 }
